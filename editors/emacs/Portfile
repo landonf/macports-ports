@@ -98,6 +98,25 @@ if {$subport eq "emacs-devel" || $subport eq "emacs-app-devel"} {
     git.url         https://github.com/emacs-mirror/emacs.git
     git.branch      2a47ef86e95fad1dcc14a02e7471ba5d9cad4b9b
 
+    variant native_comp {
+        git.branch              f0f8d7b82492e741950c363a03b886965c91b1b0
+
+        patchfiles-append       patch-Makefile.in-native_comp.diff
+
+        configure.args-append   --with-nativecomp
+        configure.cppflags-append -I${prefix}/include/gcc10
+        configure.ldflags-append -L${prefix}/lib/gcc10
+
+        depends_lib-append      port:gcc10
+
+        if {$subport eq "emacs-app-devel"} {
+            post-patch {
+                reinplace {s|^ELN_DESTDIR =.*|ELN_DESTDIR="${ns_appbindir}/../"|g} \
+                    Makefile.in
+            }
+        }
+    }
+
     pre-configure {
         system -W ${worksrcpath} "sh ./autogen.sh"
     }
